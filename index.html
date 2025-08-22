@@ -1,70 +1,38 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Videoteca VR 360 – SmartRabbitXR</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Videoteca SmartRabbitXR</title>
   <style>
-    :root { --bg:#111; --panel:#1c1c1c; --brand:#29abe2; --text:#fff; --muted:#9aa; }
-    html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    header{padding:20px;background:#222}
-    h1{margin:0;font-size:22px;color:var(--brand)}
-    p.muted{margin:6px 0 0;color:var(--muted);font-size:14px}
-    .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));padding:16px;max-width:1100px;margin:0 auto 40px}
-    .card{background:var(--panel);border-radius:12px;padding:14px;border:1px solid #2a2a2a;display:flex;flex-direction:column;gap:10px}
-    .title{font-size:18px;color:var(--brand);font-weight:700}
-    .thumb{aspect-ratio:16/9;background:#000 center/cover no-repeat;border-radius:8px;border:1px solid #333}
-    .row{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{appearance:none;border:0;border-radius:8px;padding:10px 12px;background:#1f1f1f;color:#fff;text-decoration:none;cursor:pointer}
-    .btn.primary{background:var(--brand);color:#001018;font-weight:700}
+    body { font-family: Arial, sans-serif; text-align: center; background:#111; color:#fff; }
+    h1 { color: #00d1b2; }
+    .video-list { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+    .video-item { background:#222; padding:15px; border-radius:8px; }
+    a { color:#00d1b2; font-size:18px; text-decoration:none; }
+    a:hover { text-decoration:underline; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Videoteca VR 360 – SmartRabbitXR</h1>
-    <p class="muted">Elige un video para verlo en 360° con Cardboard. (Funciona con enlaces directos de Dropbox)</p>
-  </header>
+  <h1>🎥 Videoteca SmartRabbitXR</h1>
+  <p>Selecciona un video para verlo en 360° con Cardboard</p>
 
-  <div id="app" class="grid"></div>
-
-  <script>
-    // ➊ Agrega tus videos aquí (enlaces directos de Dropbox: dl.dropboxusercontent.com o ?raw=1)
-    const VIDEOS = [
-      {
-        title: "Isla del Coco",
-        src: "https://dl.dropboxusercontent.com/scl/fi/ucqf1zk9r0cdiawpl61w5/01-Isla-del-Coco.mp4?rlkey=vi95iy94guvs98265r2lp74ds",
-        rotY: -90,
-        thumb: "" // opcional: URL de imagen miniatura
-      },
-      {
-        title: "UICN – Cardboard",
-        src: "https://dl.dropboxusercontent.com/scl/fi/p6tdbzkn1giakham654bx/UICN-cardboard.mp4?rlkey=dbmnbik1ne6rnoviglffmwtt5",
-        rotY: -90,
-        thumb: ""
-      }
-    ];
-
-    const app = document.getElementById('app');
-
-    for (const v of VIDEOS) {
-      const qs = new URLSearchParams({
-        src: v.src,
-        title: v.title,
-        rotY: String(v.rotY ?? -90)
-      });
-      const card = document.createElement('div');
-      card.className = 'card';
-      const bg = v.thumb ? `style="background-image:url('${v.thumb}');"` : "";
-      card.innerHTML = `
-        <div class="thumb" ${bg}></div>
-        <div class="title">${v.title}</div>
-        <div class="row">
-          <a class="btn primary" href="viewer.html?${qs}">Ver en visor (giroscopio)</a>
-          <a class="btn" href="${v.src}" target="_blank" rel="noopener">Abrir MP4</a>
-        </div>
-      `;
-      app.appendChild(card);
-    }
-  </script>
+  <div class="video-list">
+    <div class="video-item">
+      <a href="viewer.html?src=https://github.com/SmartRabbitXR/smartrabbitxr/releases/download/v1.0.0/01.Isla.del.Coco.mp4&title=Isla del Coco">
+        🌊 Isla del Coco
+      </a>
+    </div>
+    <div class="video-item">
+      <a href="viewer.html?src=https://github.com/SmartRabbitXR/smartrabbitxr/releases/download/v1.0.0/UICN.cardboard.mp4&title=UICN Cardboard">
+        🐠 UICN Cardboard
+      </a>
+    </div>
+    <div class="video-item">
+      <a href="viewer.html?src=https://github.com/SmartRabbitXR/smartrabbitxr/releases/download/v1.0.0/Expedicion.Glaciar.Grey.mp4&title=Glaciar Grey">
+        ❄️ Expedición Glaciar Grey
+      </a>
+    </div>
+  </div>
 </body>
 </html>
