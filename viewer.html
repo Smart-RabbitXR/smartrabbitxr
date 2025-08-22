@@ -1,81 +1,96 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-    <title>Visor 360 – SmartRabbitXR</title>
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <style>
-      html,body{margin:0;height:100%;background:#000;font-family:system-ui,Arial,sans-serif}
-      #ui{position:absolute;inset:0;display:flex;flex-direction:column;
-          align-items:center;justify-content:center;z-index:10;background:#000;color:#fff}
-      #ui h2{margin-bottom:14px;font-size:18px;text-align:center;padding:0 20px}
-      #start{padding:14px 20px;font-size:16px;border:0;border-radius:8px;background:#29abe2;color:#001018;font-weight:700;cursor:pointer}
-      #ui.hidden{display:none}
-    </style>
-  </head>
-  <body>
-    <!-- UI inicial para cumplir autoplay en móviles -->
-    <div id="ui">
-      <h2 id="title">Video 360</h2>
-      <button id="start">▶︎ Toca para iniciar</button>
-    </div>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Visor VR 360 (A-Frame)</title>
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <style>
+    html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    #top{position:fixed;left:0;right:0;top:0;display:flex;gap:8px;align-items:center;padding:8px 10px;background:linear-gradient(#0008,#0000);z-index:30}
+    #back{appearance:none;border:0;border-radius:8px;padding:8px 10px;background:#1f1f1f;color:#fff;cursor:pointer}
+    #ttl{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw}
+    #ui{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;background:#000}
+    #start{padding:14px 18px;font-size:16px;border:0;border-radius:10px}
+    #ui.hidden{display:none}
+    #vrBtn{position:fixed;right:12px;bottom:12px;z-index:20;padding:10px 14px;border-radius:999px;border:0;font-size:14px;opacity:.5}
+    #vrBtn.enabled{opacity:1}
+    #msg{position:fixed;left:8px;bottom:8px;color:#fff;font:12px/1.3 monospace;opacity:.85;max-width:96%}
+    video{display:none}
+  </style>
+</head>
+<body>
+  <div id="top">
+    <button id="back" onclick="history.back()">← Galería</button>
+    <div id="ttl">Visor VR 360</div>
+  </div>
 
-    <!-- Escena A-Frame -->
-    <a-scene background="color: #000" vr-mode-ui="enabled: true" renderer="antialias: true">
-      <a-assets>
-        <video id="video360"
-               crossorigin="anonymous"
-               playsinline
-               webkit-playsinline
-               preload="auto"
-               loop
-               muted>
-        </video>
-      </a-assets>
+  <div id="ui">
+    <button id="start">▶︎ Toca para iniciar el video 360</button>
+  </div>
 
-      <!-- esfera de video -->
-      <a-videosphere id="sphere" src="#video360" rotation="0 -90 0"></a-videosphere>
+  <button id="vrBtn" title="Entrar a VR" disabled>🕶️ VR</button>
 
-      <!-- cámara + cursor -->
-      <a-entity camera look-controls wasd-controls>
-        <a-entity cursor="fuse: false; rayOrigin: mouse"></a-entity>
-      </a-entity>
-    </a-scene>
+  <a-scene id="scene" background="color:#000" vr-mode-ui="enabled:true" renderer="antialias:true">
+    <a-videosphere id="sphere" rotation="0 -90 0" radius="5000" segments-height="64" segments-width="64"></a-videosphere>
+    <a-entity camera look-controls wasd-controls>
+      <a-entity cursor="fuse:false; rayOrigin:mouse"></a-entity>
+    </a-entity>
+  </a-scene>
 
-    <script>
-      // Tomamos parámetros de la URL
-      const params = new URLSearchParams(window.location.search);
-      const src   = params.get("src");     // enlace directo de Dropbox
-      const title = params.get("title") || "Video 360";
-      const rotY  = parseFloat(params.get("rotY") || -90);
+  <video id="video360" playsinline webkit-playsinline preload="metadata" loop muted></video>
+  <div id="msg"></div>
 
-      const vid   = document.getElementById("video360");
-      const sphere= document.getElementById("sphere");
-      const titleEl=document.getElementById("title");
+  <script>
+    const qs   = new URLSearchParams(location.search);
+    const SRC  = qs.get('src')   || "";
+    const rotY = Number(qs.get('rotY') || "-90");
+    const ttl  = qs.get('title') || "Visor VR 360";
 
-      if(src){
-        vid.src = src;
-      }
-      if(title){
-        titleEl.textContent = title;
-      }
-      if(rotY){
-        sphere.setAttribute("rotation", `0 ${rotY} 0`);
-      }
+    const BTN = document.getElementById('start');
+    const VRB = document.getElementById('vrBtn');
+    const TITLE = document.getElementById('ttl');
+    const LOG = t => document.getElementById('msg').textContent = new Date().toLocaleTimeString()+": "+t;
+    const VID = document.getElementById('video360');
+    const SPH = document.getElementById('sphere');
+    const SCN = document.getElementById('scene');
 
-      // Botón iniciar video
-      const btn = document.getElementById("start");
-      btn.addEventListener("click", async () => {
-        try{
-          await vid.play();
-          vid.muted = false;
-        }catch(e){
-          vid.muted = true;
-          await vid.play().catch(()=>{});
+    TITLE.textContent = ttl;
+    SPH.setAttribute('rotation', `0 ${rotY} 0`);
+
+    const enableVR = ()=>{ VRB.disabled = false; VRB.classList.add('enabled'); };
+    ['loadedmetadata','canplay','playing'].forEach(ev=>VID.addEventListener(ev,()=>{ LOG("video: "+ev); enableVR(); }));
+    ['waiting','stalled','error','pause','ended'].forEach(ev=>VID.addEventListener(ev,()=>LOG("video: "+ev+(VID.error?(" code="+VID.error.code):""))));
+
+    async function requestDeviceMotionPermission(){
+      try{
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function'){
+          const res = await DeviceMotionEvent.requestPermission();
+          LOG("motion perm: "+res);
         }
-        document.getElementById("ui").classList.add("hidden");
-      });
-    </script>
-  </body>
+      }catch(e){ LOG("motion perm err: "+e); }
+    }
+
+    BTN.addEventListener('click', async ()=>{
+      if (!SRC) { LOG("❌ Falta ?src=URL_MP4"); alert("Falta ?src=URL_MP4"); return; }
+      await requestDeviceMotionPermission();
+      try {
+        if (!VID.src) VID.src = SRC;
+        VID.load(); VID.currentTime = 0.1;
+        await VID.play(); VID.muted = false; LOG("play OK (unmuted)");
+      } catch (e1) {
+        try { VID.muted = true; await VID.play(); LOG("play OK (muted)"); }
+        catch(e2){ LOG("play FAILED: "+(e2?.message||e2)); }
+      }
+      try { SPH.setAttribute('src', '#video360'); } catch(e){ LOG("sphere src error: "+e); }
+      document.getElementById('ui').classList.add('hidden');
+    });
+
+    VRB.addEventListener('click', async ()=>{
+      if (VRB.disabled) { LOG("VR bloqueado: espera al 'canplay'"); return; }
+      try { await SCN.enterVR(); }
+      catch(e){ LOG("enterVR error: "+e); alert("Si no entra a VR, abre esta página fuera de iframes y con HTTPS."); }
+    });
+  </script>
+</body>
 </html>
