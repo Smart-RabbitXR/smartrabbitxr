@@ -2,37 +2,67 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <title>Visor 360</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reproductor 360</title>
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <style>
-    body, html { margin:0; height:100%; background:#000; }
-    #title { position: absolute; top: 10px; left: 10px; color:#fff; font-size:18px; background:rgba(0,0,0,0.5); padding:5px 10px; border-radius:5px; }
+    #ui { position:absolute; top:0; left:0; right:0; bottom:0;
+          background:rgba(0,0,0,0.8); display:flex; flex-direction:column;
+          align-items:center; justify-content:center; color:#fff; }
+    button { padding:15px 20px; margin:10px; font-size:18px; }
+    .hidden { display:none; }
   </style>
 </head>
 <body>
-  <div id="title"></div>
+  <div id="ui">
+    <h2 id="ttl">Cargando...</h2>
+    <button id="start">▶ Reproducir</button>
+  </div>
 
-  <a-scene loading-screen="dotsColor: #24CAFF; backgroundColor: black" vr-mode-ui="enabled: true">
+  <a-scene loading-screen="enabled:false" background="black">
     <a-assets>
-      <video id="video360" crossorigin="anonymous" playsinline webkit-playsinline preload="auto" loop></video>
+      <video id="web360" crossorigin="anonymous" playsinline webkit-playsinline preload="auto" loop></video>
     </a-assets>
-    <a-videosphere src="#video360" rotation="0 -90 0"></a-videosphere>
+    <a-sky id="sphere" rotation="0 -90 0" src="#web360"></a-sky>
     <a-entity camera look-controls wasd-controls position="0 0 0"></a-entity>
   </a-scene>
 
   <script>
-    // Leer parámetros
-    const qs = new URLSearchParams(location.search);
-    const src = qs.get("src");
-    const title = qs.get("title") || "Video 360°";
+    const qs   = new URLSearchParams(location.search);
+    const SRC  = qs.get('src') || "";
+    const ROTY = Number(qs.get('rotY') || -90);
+    const TTL  = qs.get('title') || "Video 360";
 
-    document.getElementById("title").innerText = title;
-    const v = document.getElementById("video360");
-    if (src) {
-      v.src = src;
-      v.play().catch(()=>{}); // autoplay control
+    const VID = document.getElementById('web360');
+    const SPH = document.getElementById('sphere');
+    document.getElementById('ttl').textContent = TTL;
+    SPH.setAttribute('rotation', `0 ${ROTY} 0`);
+
+    document.getElementById('start').addEventListener('click', async ()=>{
+      if (!SRC){ alert('Falta ?src=URL_MP4'); return; }
+      if (!VID.src) VID.src = SRC;
+
+      try { 
+        await VID.play(); 
+        VID.muted = false; 
+      } catch { 
+        VID.muted = true; 
+        await VID.play().catch(()=>{}); 
+      }
+
+      document.getElementById('ui').classList.add('hidden');
+    });
+
+    // iOS: pedir permiso giroscopio
+    async function askMotionPermissions(){
+      try {
+        if (typeof DeviceMotionEvent !== "undefined" &&
+            typeof DeviceMotionEvent.requestPermission === "function") {
+          await DeviceMotionEvent.requestPermission();
+        }
+      } catch(e){ console.log("Motion not allowed", e); }
     }
+    document.getElementById("start").addEventListener("click", askMotionPermissions);
   </script>
 </body>
 </html>
