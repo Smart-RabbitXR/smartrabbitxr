@@ -1,46 +1,81 @@
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Visor VR – SmartRabbitXR</title>
-  <style>
-    body, html {
-      margin: 0;
-      height: 100%;
-      background: #000;
-    }
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-    #msg {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      color: #fff;
-      font-family: monospace;
-      font-size: 14px;
-    }
-  </style>
-</head>
-<body>
-  <div id="msg">Cargando video...</div>
-  <iframe id="player" allow="autoplay; fullscreen; picture-in-picture; gyroscope; accelerometer" allowfullscreen></iframe>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <title>Visor 360 – SmartRabbitXR</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+      html,body{margin:0;height:100%;background:#000;font-family:system-ui,Arial,sans-serif}
+      #ui{position:absolute;inset:0;display:flex;flex-direction:column;
+          align-items:center;justify-content:center;z-index:10;background:#000;color:#fff}
+      #ui h2{margin-bottom:14px;font-size:18px;text-align:center;padding:0 20px}
+      #start{padding:14px 20px;font-size:16px;border:0;border-radius:8px;background:#29abe2;color:#001018;font-weight:700;cursor:pointer}
+      #ui.hidden{display:none}
+    </style>
+  </head>
+  <body>
+    <!-- UI inicial para cumplir autoplay en móviles -->
+    <div id="ui">
+      <h2 id="title">Video 360</h2>
+      <button id="start">▶︎ Toca para iniciar</button>
+    </div>
 
-  <script>
-    // Obtener el ID desde la URL: viewer.html?id=NUMERO
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
+    <!-- Escena A-Frame -->
+    <a-scene background="color: #000" vr-mode-ui="enabled: true" renderer="antialias: true">
+      <a-assets>
+        <video id="video360"
+               crossorigin="anonymous"
+               playsinline
+               webkit-playsinline
+               preload="auto"
+               loop
+               muted>
+        </video>
+      </a-assets>
 
-    if (!id) {
-      document.getElementById("msg").innerText = "❌ Falta el parámetro ?id=";
-    } else {
-      document.getElementById("msg").innerText = "▶︎ Video cargado";
-      document.getElementById("player").src =
-        `https://player.vimeo.com/video/836763682?playsinline=1&title=0&byline=0&portrait=0&autopause=0&quality=auto`;
-    }
-  </script>
-</body>
+      <!-- esfera de video -->
+      <a-videosphere id="sphere" src="#video360" rotation="0 -90 0"></a-videosphere>
+
+      <!-- cámara + cursor -->
+      <a-entity camera look-controls wasd-controls>
+        <a-entity cursor="fuse: false; rayOrigin: mouse"></a-entity>
+      </a-entity>
+    </a-scene>
+
+    <script>
+      // Tomamos parámetros de la URL
+      const params = new URLSearchParams(window.location.search);
+      const src   = params.get("src");     // enlace directo de Dropbox
+      const title = params.get("title") || "Video 360";
+      const rotY  = parseFloat(params.get("rotY") || -90);
+
+      const vid   = document.getElementById("video360");
+      const sphere= document.getElementById("sphere");
+      const titleEl=document.getElementById("title");
+
+      if(src){
+        vid.src = src;
+      }
+      if(title){
+        titleEl.textContent = title;
+      }
+      if(rotY){
+        sphere.setAttribute("rotation", `0 ${rotY} 0`);
+      }
+
+      // Botón iniciar video
+      const btn = document.getElementById("start");
+      btn.addEventListener("click", async () => {
+        try{
+          await vid.play();
+          vid.muted = false;
+        }catch(e){
+          vid.muted = true;
+          await vid.play().catch(()=>{});
+        }
+        document.getElementById("ui").classList.add("hidden");
+      });
+    </script>
+  </body>
 </html>
