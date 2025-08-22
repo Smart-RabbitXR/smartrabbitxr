@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Galería VR – SmartRabbitXR</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+    }
+    header {
+      padding: 20px;
+      text-align: center;
+      background: #222;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      color: #29abe2;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .card {
+      background: #1c1c1c;
+      padding: 16px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .card h2 {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #29abe2;
+    }
+    .card p {
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .card a {
+      display: inline-block;
+      padding: 10px 14px;
+      background: #29abe2;
+      color: #000;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+    .card a:hover {
+      background: #1e90ff;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Galería VR – SmartRabbitXR</h1>
+    <p>Explora nuestros videos 360° en Cardboard</p>
+  </header>
+
+  <div class="grid">
+    <!-- Video 1 -->
+    <div class="card">
+      <h2>UICN – Cardboard</h2>
+      <p>Video educativo 360 sobre conservación.</p>
+      <a href="https://vimeo.com/111111111" target="_blank">Ver en Cardboard</a>
+    </div>
+
+    <!-- Video 2 -->
+    <div class="card">
+      <h2>Océanos – VR</h2>
+      <p>Sumérgete en la vida marina en 360°.</p>
+      <a href="https://vimeo.com/222222222" target="_blank">Ver en Cardboard</a>
+    </div>
+
+    <!-- Video 3 -->
+    <div class="card">
+      <h2>Sabanas Africanas</h2>
+      <p>Explora la fauna de la sabana en realidad virtual.</p>
+      <a href="https://vimeo.com/333333333" target="_blank">Ver en Cardboard</a>
+    </div>
+  </div>
+</body>
+</html>
