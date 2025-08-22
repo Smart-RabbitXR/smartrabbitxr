@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Visor VR 360</title>
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <style>
+    html,body{margin:0;height:100%;background:#000;color:#fff}
+    #uiStart{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:20}
+    #start{padding:14px 18px;font-size:16px;border:0;border-radius:10px}
+    #uiStart.hidden{display:none}
+    #vrBtn{position:fixed;right:12px;bottom:12px;z-index:20;padding:10px 14px;border-radius:999px;border:0;font-size:14px;opacity:.6}
+    #vrBtn.enabled{opacity:1}
+    #msg{position:fixed;left:8px;bottom:8px;font:12px monospace;color:#fff}
+    video{display:none}
+  </style>
+</head>
+<body>
+  <div id="uiStart">
+    <button id="start">▶︎ Toca para iniciar el video 360</button>
+  </div>
+  <button id="vrBtn" title="Entrar a VR" disabled>🕶️ VR</button>
+
+  <a-scene id="scene" background="color:#000" vr-mode-ui="enabled:true">
+    <!-- Monoscópico 360 equirectangular -->
+    <a-videosphere id="sphere" rotation="0 -90 0" radius="5000"></a-videosphere>
+    <a-entity camera look-controls>
+      <a-entity cursor="rayOrigin:mouse"></a-entity>
+    </a-entity>
+  </a-scene>
+
+  <video id="video360" playsinline webkit-playsinline preload="metadata" loop muted></video>
+  <div id="msg"></div>
+
+  <script>
+    const qs  = new URLSearchParams(location.search);
+    const SRC = qs.get('src') || "";                 // URL directa .mp4 (Dropbox dl… o …&raw=1)
+    const rotY= Number(qs.get('rotY') || "-90");     // Rotación inicial
+    const BTN = document.getElementById('start');
+    const VRB = document.getElementById('vrBtn');
+    const VID = document.getElementById('video360');
+    const SPH = document.getElementById('sphere');
+    const SCN = document.getElementById('scene');
+
+    SPH.setAttribute('rotation', `0 ${rotY} 0`);
+    const enableVR = ()=>{ VRB.disabled=false; VRB.classList.add('enabled'); };
+    ['canplay','playing'].forEach(ev=>VID.addEventListener(ev,enableVR));
+
+    BTN.addEventListener('click', async ()=>{
+      if (!SRC) { alert("Falta parámetro src"); return; }
+      if (!VID.src) VID.src = SRC;
+      VID.load(); VID.currentTime = 0.1;
+      try { await VID.play(); VID.muted = false; }
+      catch { VID.muted = true; await VID.play().catch(()=>{}); }
+      SPH.setAttribute('src','#video360');
+      document.getElementById('uiStart').classList.add('hidden');
+    });
+
+    VRB.addEventListener('click', ()=>SCN.enterVR());
+  </script>
+</body>
+</html>
