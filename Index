@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>VR 360 – Cardboard</title>
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <style>
+    html,body{margin:0;height:100%;background:#000}
+    #uiStart{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:20}
+    #start{padding:14px 18px;font-size:16px;border:0;border-radius:10px}
+    #uiStart.hidden{display:none}
+    #vrBtn{position:fixed;right:12px;bottom:12px;z-index:20;padding:10px 14px;border-radius:999px;border:0;font-size:14px;opacity:.55}
+    #vrBtn.enabled{opacity:1}
+    #msg{position:fixed;left:8px;bottom:8px;color:#fff;font:12px/1.3 monospace;opacity:.9;max-width:96%}
+    video{display:none}
+  </style>
+</head>
+<body>
+  <!-- Botón para iniciar (necesario en móvil) -->
+  <div id="uiStart">
+    <button id="start">▶︎ Toca para iniciar el video 360</button>
+  </div>
+
+  <!-- Botón propio para Cardboard/VR -->
+  <button id="vrBtn" title="Entrar a VR" disabled>🕶️ VR</button>
+
+  <!-- Escena A-Frame -->
+  <a-scene id="scene" background="color:#000" vr-mode-ui="enabled:true" renderer="antialias:true">
+    <!-- Esfera 360 monoscópica (ajustada) -->
+    <a-videosphere
+      id="sphere"
+      rotation="0 -90 0"
+      radius="5000"
+      segments-height="64"
+      segments-width="64">
+    </a-videosphere>
+
+    <!-- Cámara -->
+    <a-entity camera look-controls wasd-controls>
+      <a-entity cursor="fuse:false; rayOrigin:mouse"></a-entity>
+    </a-entity>
+  </a-scene>
+
+  <!-- Video oculto (asignamos src tras el tap) -->
+  <video id="video360" playsinline webkit-playsinline preload="metadata" loop muted></video>
+  <div id="msg"></div>
+
+  <script>
+    const BTN = document.getElementById('start');
+    const VRB = document.getElementById('vrBtn');
+    const LOG = t => document.getElementById('msg').textContent = new Date().toLocaleTimeString()+": "+t;
+    const VID = document.getElementById('video360');
+    const SPH = document.getElementById('sphere');
+    const SCN = document.getElementById('scene');
+
+    // TU LINK DIRECTO DE DROPBOX
+    const DROPBOX_URL = "https://dl.dropboxusercontent.com/scl/fi/p6tdbzkn1giakham654bx/UICN-cardboard.mp4?rlkey=dbmnbik1ne6rnoviglffmwtt5";
+
+    // Habilitar VR cuando el video esté listo
+    const enableVR = ()=>{ VRB.disabled = false; VRB.classList.add('enabled'); };
+    ['loadedmetadata','canplay','playing'].forEach(ev=>VID.addEventListener(ev,()=>{ LOG("video event: "+ev); enableVR(); }));
+
+    // Mensajes útiles
+    ['waiting','stalled','error','pause','ended'].forEach(ev=>VID.addEventListener(ev,()=>LOG("video event: "+ev+(VID.error?(" code="+VID.error.code):""))));
+
+    // Iniciar video tras el tap
+    BTN.addEventListener('click', async ()=>{
+      try {
+        if (!VID.src) VID.src = DROPBOX_URL; // asignar src tras el tap
+        VID.load();
+        VID.currentTime = 0.1;               // “despierta” el stream
+        await VID.play();                    // intentar con audio
+        VID.muted = false;
+        LOG("play OK (unmuted)");
+      } catch (e1) {
+        try {
+          VID.muted = true;                  // fallback en mute
+          await VID.play();
+          LOG("play OK (muted fallback)");
+        } catch (e2) {
+          LOG("play FAILED: " + (e2?.message || e2));
+        }
+      }
+      // Vincular a la esfera
+      try { SPH.setAttribute('src', '#video360'); } catch(e){ LOG("sphere src set error: "+e); }
+      document.getElementById('uiStart').classList.add('hidden');
+    });
+
+    // Entrar a VR solo cuando el video ya está listo
+    VRB.addEventListener('click', async ()=>{
+      if (VRB.disabled) { LOG("VR bloqueado: espera a que el video esté listo…"); return; }
+      try {
+        await SCN.enterVR();
+      } catch(e){
+        LOG("enterVR error: "+e);
+        alert("Si no entra a VR, prueba abrir esta página en Chrome/Android o Safari/iOS sin estar dentro de ningún iframe.");
+      }
+    });
+  </script>
+</body>
+</html>
