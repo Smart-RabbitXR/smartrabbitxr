@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Visor VR – SmartRabbitXR</title>
+  <style>
+    body, html {
+      margin: 0;
+      height: 100%;
+      background: #000;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    #msg {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      color: #fff;
+      font-family: monospace;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="msg">Cargando video...</div>
+  <iframe id="player" allow="autoplay; fullscreen; picture-in-picture; gyroscope; accelerometer" allowfullscreen></iframe>
+
+  <script>
+    // Obtener el ID desde la URL: viewer.html?id=NUMERO
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+
+    if (!id) {
+      document.getElementById("msg").innerText = "❌ Falta el parámetro ?id=";
+    } else {
+      document.getElementById("msg").innerText = "▶︎ Video cargado";
+      document.getElementById("player").src =
+        `https://player.vimeo.com/video/${id}?playsinline=1&title=0&byline=0&portrait=0&autopause=0&quality=auto`;
+    }
+  </script>
+</body>
+</html>
