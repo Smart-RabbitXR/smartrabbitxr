@@ -1,89 +1,81 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Galería VR – SmartRabbitXR</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Galería VR 360 – SmartRabbitXR</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #fff;
-    }
-    header {
-      padding: 20px;
-      text-align: center;
-      background: #222;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 22px;
-      color: #29abe2;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      padding: 20px;
-    }
-    .card {
-      background: #1c1c1c;
-      padding: 16px;
-      border-radius: 10px;
-      text-align: center;
-    }
-    .card h2 {
-      font-size: 18px;
-      margin-bottom: 10px;
-      color: #29abe2;
-    }
-    .card p {
-      font-size: 14px;
-      margin-bottom: 12px;
-    }
-    .card a {
-      display: inline-block;
-      padding: 10px 14px;
-      background: #29abe2;
-      color: #000;
-      text-decoration: none;
-      border-radius: 6px;
-      font-weight: bold;
-    }
-    .card a:hover {
-      background: #1e90ff;
-      color: #fff;
-    }
+    :root { --bg:#111; --panel:#1c1c1c; --brand:#29abe2; --text:#fff; --muted:#9aa; }
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    header{padding:20px;background:#222}
+    h1{margin:0;font-size:22px;color:var(--brand)}
+    p.muted{margin:6px 0 0;color:var(--muted);font-size:14px}
+    .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));padding:16px;max-width:1100px;margin:0 auto 40px}
+    .card{background:var(--panel);border-radius:12px;padding:14px;border:1px solid #2a2a2a}
+    .card h2{margin:0 0 6px;font-size:18px;color:var(--brand)}
+    .url{font-size:12px;color:#8aa;word-break:break-all;margin:6px 0 10px}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{appearance:none;border:0;border-radius:8px;padding:10px 12px;background:#1f1f1f;color:#fff;text-decoration:none;cursor:pointer}
+    .btn.primary{background:var(--brand);color:#001018;font-weight:700}
+    footer{max-width:1100px;margin:0 auto 50px;color:#8aa;padding:0 16px}
+    code{background:#222;padding:2px 6px;border-radius:6px}
   </style>
 </head>
 <body>
   <header>
-    <h1>Galería VR – SmartRabbitXR</h1>
-    <p>Explora nuestros videos 360° en Cardboard</p>
+    <h1>Galería VR 360 – SmartRabbitXR</h1>
+    <p class="muted">Toca “Ver en visor” para abrir cada video 360 con giroscopio (A-Frame + Cardboard).</p>
   </header>
 
-  <div class="grid">
-    <!-- Video 1 -->
-    <div class="card">
-      <h2>UICN – Cardboard</h2>
-      <p>Video educativo 360 sobre conservación.</p>
-      <a href="https://vimeo.com/1112167014" target="_blank">Ver en Cardboard</a>
-    </div>
+  <div id="app" class="grid"></div>
 
-    <!-- Video 2 -->
-    <div class="card">
-      <h2>Parque Nacional Santa Rosa – VR</h2>
-      <p>Proyecto más exitoso de restauración en 360°.</p>
-      <a href="https://vimeo.com/836763682" target="_blank">Ver en Cardboard</a>
-    </div>
+  <footer>
+    <p><strong>Nota:</strong> usa enlaces <em>directos</em> de Dropbox:
+      <code>https://dl.dropboxusercontent.com/…/video.mp4</code> o
+      <code>https://www.dropbox.com/…/video.mp4?raw=1</code>.
+      Ajusta <code>rotY</code> si el frente no coincide (−90, 0, 90, 180).
+    </p>
+  </footer>
 
-    <!-- Video 3 -->
-    <div class="card">
-      <h2>La Tortuga Lora/h2>
-      <p>El ciclo de vida de la tortuga lora.</p>
-      <a href="https://vimeo.com/662303800" target="_blank">Ver en Cardboard</a>
-    </div>
-  </div>
+  <script>
+    // ---------- EDITA TU REPERTORIO AQUÍ ----------
+    const VIDEOS = [
+      {
+        title: "UICN – Cardboard",
+        // Enlace directo de Dropbox (ya válido)
+        src: "https://dl.dropboxusercontent.com/scl/fi/p6tdbzkn1giakham654bx/UICN-cardboard.mp4?rlkey=dbmnbik1ne6rnoviglffmwtt5",
+        rotY: -90
+      },
+      // Ejemplos para añadir más (reemplaza por tus enlaces directos):
+      // { title: "Proteger lo irremplazable", src: "https://dl.dropboxusercontent.com/scl/fi/XXXXX/Proteger-lo-irremplazable-alta.mp4?rlkey=YYYY", rotY: -90 },
+      // { title: "Proyecto 3", src: "https://www.dropbox.com/scl/fi/ZZZZZ/proyecto3.mp4?raw=1", rotY: 0 },
+    ];
+    // ----------------------------------------------
+
+    const app = document.getElementById('app');
+
+    function makeCard(v){
+      // Construimos la URL hacia tu visor A-Frame
+      const q = new URLSearchParams({
+        src: v.src,
+        title: v.title,
+        rotY: String(v.rotY ?? -90)
+      }).toString();
+
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <h2>${v.title}</h2>
+        <div class="url">${v.src}</div>
+        <div class="row">
+          <a class="btn primary" href="viewer.html?${q}">Ver en visor (giroscopio)</a>
+          <a class="btn" href="${v.src}" target="_blank" rel="noopener">Abrir MP4</a>
+        </div>
+      `;
+      return el;
+    }
+
+    VIDEOS.forEach(v => app.appendChild(makeCard(v)));
+  </script>
 </body>
 </html>
