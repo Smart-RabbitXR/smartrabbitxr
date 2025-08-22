@@ -1,97 +1,38 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>Visor VR 360</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reproductor 360</title>
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <style>
-    html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    #top{position:fixed;left:0;right:0;top:0;display:flex;gap:8px;align-items:center;padding:8px 10px;background:linear-gradient(#0008,#0000);z-index:30}
-    #back{appearance:none;border:0;border-radius:8px;padding:8px 10px;background:#1f1f1f;color:#fff;cursor:pointer}
-    #ttl{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw}
-    #ui{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;background:#000}
-    #start{padding:14px 18px;font-size:16px;border:0;border-radius:10px}
-    #ui.hidden{display:none}
-    #msg{position:fixed;left:8px;bottom:8px;color:#fff;font:12px/1.3 monospace;opacity:.85;max-width:96%}
-    video{display:none}
+    body, html { margin:0; height:100%; background:#000; }
+    #title { position: absolute; top: 10px; left: 10px; color:#fff; font-size:18px; background:rgba(0,0,0,0.5); padding:5px 10px; border-radius:5px; }
   </style>
 </head>
 <body>
-  <div id="top">
-    <button id="back" onclick="history.back()">← Videoteca</button>
-    <div id="ttl">Cargando…</div>
-  </div>
+  <div id="title"></div>
 
-  <div id="ui">
-    <button id="start">▶︎ Toca para iniciar el video 360</button>
-  </div>
-
-  <a-scene id="scene" background="color:#000" vr-mode-ui="enabled:true" renderer="antialias:true">
+  <a-scene loading-screen="dotsColor: #24CAFF; backgroundColor: black" vr-mode-ui="enabled: true">
     <a-assets>
-      <video id="web360" crossorigin="anonymous" playsinline webkit-playsinline preload="auto" loop muted></video>
+      <video id="video360" crossorigin="anonymous" playsinline webkit-playsinline preload="auto" loop></video>
     </a-assets>
-    <!-- Equirectangular 360 monoscópico -->
-    <a-videosphere id="sphere" src="#web360" rotation="0 -90 0" radius="5000" segments-height="64" segments-width="64"></a-videosphere>
-    <a-entity camera look-controls wasd-controls></a-entity>
+    <a-videosphere src="#video360" rotation="0 -90 0"></a-videosphere>
+    <a-entity camera look-controls wasd-controls position="0 0 0"></a-entity>
   </a-scene>
 
-  <div id="msg"></div>
-
   <script>
-    // Parámetros desde la videoteca
-    const qs   = new URLSearchParams(location.search);
-    const SRC  = qs.get('src')   || "";          // MP4 directo (Dropbox/S3/CDN)
-    const ROTY = Number(qs.get('rotY') || -90);  // orientación inicial
-    const TTL  = qs.get('title') || "Video 360";
+    // Leer parámetros
+    const qs = new URLSearchParams(location.search);
+    const src = qs.get("src");
+    const title = qs.get("title") || "Video 360°";
 
-    const VID  = document.getElementById('web360');
-    const SPH  = document.getElementById('sphere');
-    const TTLel= document.getElementById('ttl');
-    const LOG  = t => document.getElementById('msg').textContent =
-      new Date().toLocaleTimeString()+": "+t;
-
-    TTLel.textContent = TTL;
-    SPH.setAttribute('rotation', `0 ${ROTY} 0`);
-
-    // Logs útiles
-    ['loadedmetadata','canplay','playing','stalled','waiting','error','ended']
-      .forEach(ev => VID.addEventListener(ev, ()=>LOG(`video: ${ev}${VID.error?` code=${VID.error.code}`:""}`)));
-
-    // iOS: pedir permisos de sensores en el mismo gesto
-    async function askMotionPermissions(){
-      try{
-        if (typeof DeviceMotionEvent !== 'undefined' &&
-            typeof DeviceMotionEvent.requestPermission === 'function'){
-          await DeviceMotionEvent.requestPermission();
-        }
-      }catch(e){}
-      try{
-        if (typeof DeviceOrientationEvent !== 'undefined' &&
-            typeof DeviceOrientationEvent.requestPermission === 'function'){
-          await DeviceOrientationEvent.requestPermission();
-        }
-      }catch(e){}
+    document.getElementById("title").innerText = title;
+    const v = document.getElementById("video360");
+    if (src) {
+      v.src = src;
+      v.play().catch(()=>{}); // autoplay control
     }
-
-    // Botón de inicio
-    document.getElementById('start').addEventListener('click', async ()=>{
-      if (!SRC){ alert('Falta ?src=URL_MP4'); return; }
-      await askMotionPermissions();
-
-      // Asigna fuente y despierta el stream antes de reproducir
-      if (!VID.src) VID.src = SRC;
-      try { VID.currentTime = 0.1; } catch(e){}
-
-      try {
-        await VID.play();          // intentamos desmutear
-        VID.muted = false;
-      } catch (e) {
-        VID.muted = true;          // fallback iOS
-        await VID.play().catch(()=>{});
-      }
-      document.getElementById('ui').classList.add('hidden');
-    });
   </script>
 </body>
 </html>
