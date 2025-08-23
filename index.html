@@ -1,51 +1,52 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Videoteca 360</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: Arial, sans-serif; background: #111; color: #fff; margin:0; padding:20px; }
-    h1 { text-align: center; }
-    .video-card { background:#222; margin:10px auto; padding:15px; border-radius:8px; max-width:500px; }
-    .video-card h2 { margin:0 0 10px; }
-    button { padding:10px 15px; border:none; border-radius:5px; cursor:pointer; }
-    .btn { background:#28a745; color:#fff; }
+    body{margin:0;background:#111;color:#fff;font-family:system-ui,Arial}
+    header{padding:18px 20px;text-align:center;border-bottom:1px solid #222}
+    .grid{max-width:900px;margin:20px auto;padding:0 16px;display:grid;gap:14px}
+    .card{background:#1d1d1d;border:1px solid #2a2a2a;border-radius:10px;padding:14px}
+    .title{margin:0 0 8px;font-size:18px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    button{cursor:pointer;border:0;border-radius:8px;padding:10px 14px;font-weight:600}
+    .play{background:#2ecc71;color:#000}
+    .copy{background:#333;color:#fff}
   </style>
 </head>
 <body>
-  <h1>Videoteca 360°</h1>
-  <div id="list"></div>
+  <header><h1>Videoteca 360°</h1></header>
+
+  <div id="list" class="grid"></div>
 
   <script>
-    // 👇 Cambia estos links por los "Friendly URL" de Backblaze
+    // 🔁 Pega aquí los Friendly URL de Backblaze (terminan en .mp4)
     const VIDEOS = [
-      {
-        title: "Isla del Coco",
-        src: "https://f005.backblazeb2.com/file/smartrabbit-videos/01+Isla+del+Coco.mp4",
-        rotY: -90
-      },
-      {
-        title: "UICN – Cardboard",
-        src: "https://f005.backblazeb2.com/file/smartrabbit-videos/UICN+1+pase.mp4",
-        rotY: -90
-      }
+      { title: "Isla del Coco",  src: "https://f002.backblazeb2.com/file/tu-bucket/Isla-del-Coco.mp4",  rotY: -90 },
+      { title: "UICN – Cardboard", src: "https://f002.backblazeb2.com/file/tu-bucket/UICN-cardboard.mp4", rotY: -90 }
     ];
 
-    const list = document.getElementById("list");
-    VIDEOS.forEach(v=>{
-      const card = document.createElement("div");
-      card.className = "video-card";
-      card.innerHTML = `
-        <h2>${v.title}</h2>
-        <button class="btn" onclick="openViewer('${encodeURIComponent(v.src)}','${v.title}',${v.rotY})">
-          Ver en visor 360
-        </button>
-      `;
-      list.appendChild(card);
+    const list = document.getElementById('list');
+    VIDEOS.forEach(v => {
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML = `
+        <h3 class="title">${v.title}</h3>
+        <div class="row">
+          <button class="play" onclick="go('${encodeURIComponent(v.src)}','${encodeURIComponent(v.title)}',${v.rotY})">Ver en visor 360</button>
+          <button class="copy" onclick="copy('${v.src}')">Copiar URL</button>
+        </div>`;
+      list.appendChild(el);
     });
 
-    function openViewer(src, title, rotY){
-      window.location.href = `viewer.html?src=${src}&title=${encodeURIComponent(title)}&rotY=${rotY}`;
+    function go(src, title, rotY){
+      location.href = `viewer.html?src=${src}&title=${title}&rotY=${rotY}`;
+    }
+    async function copy(text){
+      try{ await navigator.clipboard.writeText(text); alert('URL copiada'); }
+      catch{ prompt('Copia la URL:', text); }
     }
   </script>
 </body>
