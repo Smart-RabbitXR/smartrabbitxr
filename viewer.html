@@ -2,68 +2,77 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Videoteca 360°</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Visor 360</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <style>
-    :root{color-scheme:dark}
-    body{margin:0;background:#0e0e0f;color:#fff;font-family:system-ui,Arial}
-    header{padding:18px 20px;border-bottom:1px solid #1f1f22;text-align:center}
-    h1{margin:0;font-size:22px}
-    .grid{max-width:980px;margin:20px auto;padding:0 16px;display:grid;gap:14px}
-    .card{background:#151518;border:1px solid #242429;border-radius:12px;padding:14px}
-    .title{margin:0 0 8px}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    button{cursor:pointer;border:0;border-radius:10px;padding:10px 14px;font-weight:700}
-    .play{background:#2ecc71;color:#000}
-    .copy{background:#2a2a2f;color:#fff}
-    .note{opacity:.7;font-size:13px;margin:16px auto;text-align:center;max-width:900px}
-    a{color:#6ac8ff}
+    html,body{margin:0;height:100%;background:#000}
+    #topbar{position:fixed;left:12px;top:12px;z-index:20}
+    #ui{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);color:#fff;z-index:15}
+    #ui.hidden{display:none}
+    button{border:0;border-radius:12px;padding:12px 16px;font-size:16px;font-weight:700;cursor:pointer}
+    .ghost{background:#232326;color:#fff}
+    .primary{background:#2ecc71;color:#000;margin-top:10px}
+    h2{margin:0 0 12px;text-align:center}
   </style>
 </head>
 <body>
-  <header><h1>Videoteca 360°</h1></header>
+  <div id="topbar">
+    <button class="ghost" onclick="history.back()">← Videoteca</button>
+  </div>
 
-  <div id="list" class="grid"></div>
-  <p class="note">
-    Consejo: en iPhone toca <b>▶︎ Tocar para iniciar</b> en el visor para habilitar audio y giroscopio.
-  </p>
+  <div id="ui">
+    <h2 id="ttl">Video 360</h2>
+    <button id="start" class="primary">▶︎ Tocar para iniciar</button>
+  </div>
+
+  <a-scene loading-screen="enabled:false" background="color: #000" vr-mode-ui="enabled: true">
+    <a-assets>
+      <video id="web360"
+             crossorigin="anonymous"
+             playsinline webkit-playsinline
+             preload="auto"
+             loop></video>
+    </a-assets>
+
+    <a-videosphere id="sphere" src="#web360" rotation="0 -90 0"></a-videosphere>
+    <a-entity camera look-controls wasd-controls position="0 0 0"></a-entity>
+  </a-scene>
 
   <script>
-    
-    const VIDEOS = [
-      {
-        title: "Isla del Coco",
-        src: "https://f005.backblazeb2.com/file/smartrabbit-videos/01+Isla+del+Coco.mp4",
-        rotY: -90
-      },
-      {
-        title: "UICN – Cardboard",
-        src: "https://f005.backblazeb2.com/file/smartrabbit-videos/UICN+1+pase.mp4",
-        rotY: -90
+    // ====== Lee parámetros ======
+    const qs   = new URLSearchParams(location.search);
+    const SRC  = qs.get('src') || "";                     // URL mp4 Backblaze
+    const TTL  = decodeURIComponent(qs.get('title') || "Video 360");
+    const ROTY = Number(qs.get('rotY') || -90);
+
+    const v   = document.getElementById('web360');
+    const sky = document.getElementById('sphere');
+    document.getElementById('ttl').textContent = TTL;
+    sky.setAttribute('rotation', `0 ${ROTY} 0`);
+
+    // ====== Inicio tras gesto (iOS requiere gesto de usuario) ======
+    document.getElementById('start').addEventListener('click', async ()=>{
+      if (!SRC){ alert('Falta ?src=URL_MP4'); return; }
+      if (!v.src) v.src = SRC;
+
+      // iOS: pedir permiso para sensores de movimiento (giroscopio)
+      try{
+        if (typeof DeviceMotionEvent !== "undefined" &&
+            typeof DeviceMotionEvent.requestPermission === "function"){
+          await DeviceMotionEvent.requestPermission().catch(()=>{});
+        }
+      }catch(e){}
+
+      try{
+        await v.play();     // intenta con audio
+        v.muted = false;
+      }catch(e){
+        v.muted = true;     // fallback iOS si bloquea audio
+        await v.play().catch(()=>{});
       }
-    ];
-
-    const list = document.getElementById('list');
-    VIDEOS.forEach(v => {
-      const el = document.createElement('div');
-      el.className = 'card';
-      el.innerHTML = `
-        <h3 class="title">${v.title}</h3>
-        <div class="row">
-          <button class="play" onclick="go('${encodeURIComponent(v.src)}','${encodeURIComponent(v.title)}',${v.rotY})">Ver en visor 360</button>
-          <button class="copy" onclick="copy('${v.src}')">Copiar URL</button>
-        </div>`;
-      list.appendChild(el);
+      document.getElementById('ui').classList.add('hidden');
     });
-
-    function go(src, title, rotY){
-      location.href = `viewer.html?src=${src}&title=${title}&rotY=${rotY}`;
-    }
-
-    async function copy(text){
-      try{ await navigator.clipboard.writeText(text); alert('URL copiada'); }
-      catch{ prompt('Copia la URL:', text); }
-    }
   </script>
 </body>
 </html>
