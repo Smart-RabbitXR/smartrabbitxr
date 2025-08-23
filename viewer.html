@@ -1,77 +1,64 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Visor 360</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Reproductor 360</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <style>
-    html,body{margin:0;height:100%;background:#000}
-    #topbar{position:fixed;left:12px;top:12px;z-index:20}
-    #ui{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);color:#fff;z-index:15}
-    #ui.hidden{display:none}
-    button{border:0;border-radius:10px;padding:12px 16px;font-size:16px;font-weight:600;cursor:pointer}
-    .primary{background:#2ecc71;color:#000}
-    .ghost{background:#222;color:#fff}
-    h2{margin:0 0 12px}
+    body { margin: 0; background: black; }
+    #title {
+      position: absolute;
+      top: 10px; left: 0; right: 0;
+      text-align: center;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: 20px;
+      text-shadow: 1px 1px 5px black;
+    }
   </style>
 </head>
 <body>
-  <div id="topbar">
-    <button class="ghost" onclick="history.back()">← Videoteca</button>
-  </div>
+  <div id="title">Cargando video...</div>
 
-  <div id="ui">
-    <h2 id="ttl">Video 360</h2>
-    <button id="start" class="primary">▶︎ Tocar para iniciar</button>
-  </div>
-
-  <a-scene loading-screen="enabled:false" background="color: #000" vr-mode-ui="enabled: true">
+  <a-scene loading-screen="dotsColor: #24CAFF; backgroundColor: black" vr-mode-ui="enabled: true">
     <a-assets>
-      <video id="web360"
-             crossorigin="anonymous"
-             playsinline webkit-playsinline
-             preload="auto"
-             loop></video>
+      <video id="Protegamos lo irremplazable" 
+             src="https://f005.backblazeb2.com/file/smartrabbit-videos/UICN+1+pase.mp4" 
+             autoplay 
+             loop 
+             crossorigin="anonymous" 
+             playsinline 
+             webkit-playsinline 
+             muted>
+      </video>
     </a-assets>
 
-    <a-videosphere id="sphere" src="#web360" rotation="0 -90 0"></a-videosphere>
+    <!-- Esfera de video -->
+    <a-videosphere src="#video360" rotation="0 -90 0"></a-videosphere>
+
+    <!-- Cámara con control de giroscopio y touch -->
     <a-entity camera look-controls wasd-controls position="0 0 0"></a-entity>
   </a-scene>
 
   <script>
-    // Lee parámetros ?src= ... &title= ... &rotY= ...
-    const qs   = new URLSearchParams(location.search);
-    const SRC  = qs.get('src') || "";          // URL mp4 Backblaze
-    const TTL  = decodeURIComponent(qs.get('title') || "Video 360");
-    const ROTY = Number(qs.get('rotY') || -90);
+    // Actualiza el título con el nombre del video
+    document.getElementById("title").textContent = "UICN- Mesoamerica";
 
-    const v   = document.getElementById('web360');
-    const sky = document.getElementById('sphere');
-    document.getElementById('ttl').textContent = TTL;
-    sky.setAttribute('rotation', `0 ${ROTY} 0`);
-
-    document.getElementById('start').addEventListener('click', async ()=>{
-      if (!SRC){ alert('Falta ?src=URL_MP4'); return; }
-      if (!v.src) v.src = SRC;
-
-      // iOS: permiso para sensores (giroscopio)
-      try{
+    // iOS necesita permiso para giroscopio
+    async function askMotionPermissions(){
+      try {
         if (typeof DeviceMotionEvent !== "undefined" &&
-            typeof DeviceMotionEvent.requestPermission === "function"){
-          await DeviceMotionEvent.requestPermission().catch(()=>{});
+            typeof DeviceMotionEvent.requestPermission === "function") {
+          const resp = await DeviceMotionEvent.requestPermission();
+          if (resp === "granted") console.log("✅ Giroscopio activado");
+          else console.warn("⚠️ El usuario denegó permisos de giroscopio");
         }
-      }catch(e){}
+      } catch (e) { console.error(e); }
+    }
 
-      try{
-        await v.play();
-        v.muted = false;
-      }catch(e){
-        v.muted = true;             // fallback iOS
-        await v.play().catch(()=>{});
-      }
-      document.getElementById('ui').classList.add('hidden');
-    });
+    document.body.addEventListener("click", askMotionPermissions, {once:true});
   </script>
 </body>
 </html>
